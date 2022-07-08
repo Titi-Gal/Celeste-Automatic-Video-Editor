@@ -1,4 +1,5 @@
-Celeste Deaths Automatic Video Editor:
+Celeste Automatic Video Editor:
+
 Identifies the blackscreen transitiosn associated with deaths and ends in the game.
 Creates video sections with speed changes of the last moments berofe the deaths and join then togheter.
 You can opt to have the last try in real time and/or complete.
