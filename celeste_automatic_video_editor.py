@@ -8,7 +8,7 @@ creates video sections with speed changes of the last moments berofe transitions
 you can opt to have the last try/section in real time and/or complete.""", epilog="Mess with crop and blacdetect if you're having trouble with detecting transitions. blackdetect is used in the cropped video")
     parser.add_argument('path_with_videos', type=str, help="path with videos to edit")
     parser.add_argument('--last_try_complete', type=bool, default=False, help="pass true if you want the last try complete", metavar="")
-    parser.add_argument('--last_try_normal_speed', type=bool, default=False, help="", metavar="pass true if you want last try in normal speed")
+    parser.add_argument('--last_try_normal_speed', type=bool, default=False, help="pass true if you want last try in normal speed", metavar="")
     parser.add_argument('--long_scroll_screen', type=bool, default=False, help="intended for long scroll screen like last fro 8C or last from Moon, it will edit tries from short to long", metavar="")
     parser.add_argument('--secs_before_cut', type=float, default=5, help="hou much video to keep before each cut, this is before speed change", metavar="")
     parser.add_argument('--speed_change', type=float, default=2, help="by how much to change the speed. 1 is no change, can't be 0 and to hight will affect video/audio quality", metavar="")
@@ -35,13 +35,14 @@ you can opt to have the last try/section in real time and/or complete.""", epilo
     duration = args.blackdetect_duration
     pix_th = args.blackdetect_pix_th
     pic_th = args.blackdetect_pic_th
-    # List of video paths in main_dir supported by ffmpeg
+    # List of ffmpeg supported input formats
     ffmpeg_capture_out = [line.strip() for line in ffmpeg_captureOut("ffmpeg -demuxers", capture="stdout")]
     ffmpeg_capture_out = ffmpeg_capture_out[ffmpeg_capture_out.index("--") + 1:]
     ffmpeg_supprted_video_formats = []
     for line in ffmpeg_capture_out:
         for format in line.split()[1].split(","):
-            ffmpeg_supprted_video_formats.append(format) # List of ffmpeg supported input formats
+            ffmpeg_supprted_video_formats.append(format)
+    # List of video paths in main_dir supported by ffmpeg
     main_videos = only_supported_file_format_paths(main_dir, ffmpeg_supprted_video_formats)
 
     # The program will run for each supported video file in main directory, if no file is supported quits
@@ -54,7 +55,7 @@ you can opt to have the last try/section in real time and/or complete.""", epilo
         # Variables
         main_video_format = main_video[main_video.rindex(".") + 1:]
         main_video_name = main_video[main_video.rindex(f"\\") + 1: main_video.rindex(".")]
-        ready_video = f'{main_dir}\\{main_video_name}_ready.{main_video_format}'
+        ready_video = f'{main_dir}\\{main_video_name}_edited.{main_video_format}'
         temp_dir = f'{main_dir}\\TEMP_FILES_CELESTE_DEATHS_AUTOMAIC_VIDEO_EDITOR'
         os.mkdir(temp_dir)
         #____________________________________________________________________________________
@@ -86,8 +87,7 @@ you can opt to have the last try/section in real time and/or complete.""", epilo
 
         # If no transition was detected quit
         if sections_to_cut == []:
-            print("no transitions detected, check your video or try ajusting crop and blackdetect")
-            sys.exit(1)
+            print(f"no transitions detected in {main_video_name}.{main_video_format}, check your video or try ajusting crop and blackdetect")
 
         #_____________________________________________
         # Create video section files eith speed change
