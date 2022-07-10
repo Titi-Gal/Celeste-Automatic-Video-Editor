@@ -1,30 +1,27 @@
 Celeste Automatic Video Editor:
 
-Identifies the blackscreen transitiosn associated with deaths and ends in the game.
-Creates video sections with speed changes of the last moments berofe the deaths and join then togheter.
+Identifies the blackscreen transitiosn associated with deaths beginnings and endings in the game Celeste.
+Creates video sections with speed change of the last moments berofe the transitions.
 You can opt to have the last try in real time and/or complete.
 
-Usability:
+Usage Exemples:
+    python celeste_automatic_video_editor.py "path_with_videos"
+    python celeste_automatic_video_editor.py "path_with_videos" --long_scroll_screen --last_try_normal_speed --last_try_complete
+    python celeste_automatic_video_editor.py "path_with_videos" --speed_change  2.5 secs_before_cut 8
+    python celeste_automatic_video_editor.py "path_with_videos" --debug_crop_black_screen
+    python celeste_automatic_video_editor.py "path_with_videos" --crop_size 300 200 --crop_center 700 400
+    python celeste_automatic_video_editor.py "path_with_videos" --blackdetect_duration 0.1 --blackdetect_pix_th 0.03 --blackdetect_pix_th 0.98
+    python celeste_automatic_video_editor.py --help
 
-1. pré-cut your video:
+    Only requiered argument is "path_with_videos", the others can be in any order and combination.
+    Debug, Crop and Blackdetect arguments should be left alone unless you're having trouble detecting transitions
 
-I tested with videos cutted from the initial blackscreen in the beguinning of a level to the final blackscreen of the same level, it problably will work beyond these points
-Put all cutted videos in the same folder
+Dependencies:
 
-2 Ajust variables if you want to:
+ffmpeg on path, if you don't know to install it just search for install ffmpeg
+python on path, if you don't know to install it download from official site and read install options carefully
 
-As it is you can change the variables in lines 26-44
-crop and blackdetect are used to detect transitions, if you are having trouble with transitions you can ajust these
-I will shortly program all to be set in cmd line
-
-3. Run the program in cmd with python celeste_deaths_automatic_video_editor.py and enter path for "directory with videos to edit: " when asked
-
-4. Dependencies:
-
-ffmpeg on path, if you don't know to do this just search for install ffmpeg
-better with python on path, if you don't have python you just have to install it and read the options carefully
-
-5. References:
+References:
 
 information on ffmpeg parameters: https://ffmpeg.org/ffmpeg-all.html
 looked at this for speed change: https://trac.ffmpeg.org/wiki/How%20to%20speed%20up%20/%20slow%20down%20a%20video

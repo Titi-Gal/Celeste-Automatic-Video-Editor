@@ -3,21 +3,19 @@ import os, sys, subprocess, argparse
 def main():
 
     #Arguments parsing, help, usage
-    parser = argparse.ArgumentParser(description="""identifies the blackscreen transitiosn associated with deaths, beginnings and ends in the game.
-creates video sections with speed changes of the last moments berofe transitions and join then togheter.
-you can opt to have the last try/section in real time and/or complete.""", epilog="Mess with crop and blacdetect if you're having trouble with detecting transitions. blackdetect is used in the cropped video")
+    parser = argparse.ArgumentParser(description="identifies the blackscreen transitiosn associated with deaths, beginnings and ends in the game. creates video sections with speed changes of the last moments berofe transitions and join then togheter. you can opt to have the last try/section in real time and/or complete.", epilog="if you're having trouble detecting transitions use --debug_crop_blackdetect and mess with the crop and blackdetect flags, otherwise these should be left alone. others parameters are video editing optionalsm feel free to experiment with then.")
     parser.add_argument('path_with_videos', type=str, help="path with videos to edit")
-    parser.add_argument('--last_try_complete', type=bool, default=False, help="pass true if you want the last try complete", metavar="")
-    parser.add_argument('--last_try_normal_speed', type=bool, default=False, help="pass true if you want last try in normal speed", metavar="")
-    parser.add_argument('--long_scroll_screen', type=bool, default=False, help="intended for long scroll screen like last fro 8C or last from Moon, it will edit tries from short to long", metavar="")
-    parser.add_argument('--secs_before_cut', type=float, default=5, help="hou much video to keep before each cut, this is before speed change", metavar="")
-    parser.add_argument('--speed_change', type=float, default=2, help="by how much to change the speed. 1 is no change, can't be 0 and to hight will affect video/audio quality", metavar="")
-    parser.add_argument('--debug_crop_blackdetect', type=bool, default=False, help="saves the cropped video blackdetect is receiving and saves a .txt with all video sections to help ajust crop and blackdetect", metavar="")
+    parser.add_argument('--last_try_complete', action='store_false', help="pass if you want the last try complete")
+    parser.add_argument('--last_try_normal_speed', action='store_false', help="pass if you want last try in normal speed")
+    parser.add_argument('--long_scroll_screen', action='store_false', help="for videos with one long scroll screen like last fro 8C or last from Moon. won't work if video has multiple level sections. it edits tries from short to long, which is from beginning to end of the section.")
+    parser.add_argument('--secs_before_cut', type=float, default=5, help="how much video to keep before each cut, this is before speed change", metavar="")
+    parser.add_argument('--speed_change', type=float, default=2, help="by how much to change the speed, can't be 0 and to high will affect video/audio quality", metavar="")
     parser.add_argument('--crop_size', type=int, nargs=2, default=[300,300], help="rectangular area to cut in pixels", metavar="")
-    parser.add_argument('--crop_center', type=int, nargs=2, default=['(iw/2)','(ih/2)'], help="center of the rectangular area, if your game if not in fullscreen you will problably have to ajust this to be he center of your game", metavar="")
+    parser.add_argument('--crop_center', type=int, nargs=2, default=['(iw/2)','(ih/2)'], help="center of rectangular area to crop, if your game if not in fullscreen you will problably have to ajust this to be the center of your game", metavar="")
     parser.add_argument('--blackdetect_duration', type=float, default=0.1, help="min duration for a screen to be considered black", metavar="")
     parser.add_argument('--blackdetect_pix_th', type=float, default=0.03, help="pixel threshold: max luminescence for a pixel to be considered black", metavar="")
-    parser.add_argument('--blackdetect_pic_th', type=float, default=1, help="picture threshold: percentage of the screen that has to be <= pix_th to be considered black", metavar="")
+    parser.add_argument('--blackdetect_pic_th', type=float, default=1, help="picture threshold: percentage of the screen that has to be in pix_th to be considered black", metavar="")
+    parser.add_argument('--debug_crop_blackdetect', action='store_false', help="to help ajust crop and blackdetect. saves the cropped video blackdetect receives to detect transitions and saves a txt with all video sections detect")
     args = parser.parse_args()
     
     main_dir = args.path_with_videos # Path with videos
