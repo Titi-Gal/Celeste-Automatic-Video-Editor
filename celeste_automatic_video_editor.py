@@ -1,69 +1,71 @@
-import os, subprocess
+import os, sys, subprocess, argparse
 
 def main():
 
-    # Aks input for the directory with the videos
-    while True:
-        main_dir = input("directory with videos to edit: ")
-        if os.path.exists(main_dir):
-            break
-        else:
-            print("path does not exist")
-
-    # Build a list of ffmpeg supported input formats
+    #Arguments parsing, help, usage
+    parser = argparse.ArgumentParser(description="""identifies the blackscreen transitiosn associated with deaths, beginnings and ends in the game.
+creates video sections with speed changes of the last moments berofe transitions and join then togheter.
+you can opt to have the last try/section in real time and/or complete.""", epilog="Mess with crop and blacdetect if you're having trouble with detecting transitions. blackdetect is used in the cropped video")
+    parser.add_argument('path_with_videos', type=str, help="path with videos to edit")
+    parser.add_argument('--last_try_complete', type=bool, default=False, help="pass true if you want the last try complete", metavar="")
+    parser.add_argument('--last_try_normal_speed', type=bool, default=False, help="", metavar="pass true if you want last try in normal speed")
+    parser.add_argument('--long_scroll_screen', type=bool, default=False, help="intended for long scroll screen like last fro 8C or last from Moon, it will edit tries from short to long", metavar="")
+    parser.add_argument('--secs_before_cut', type=float, default=5, help="hou much video to keep before each cut, this is before speed change", metavar="")
+    parser.add_argument('--speed_change', type=float, default=2, help="by how much to change the speed. 1 is no change, can't be 0 and to hight will affect video/audio quality", metavar="")
+    parser.add_argument('--crop_size', type=int, nargs=2, default=[300,300], help="rectangular area to cut in pixels", metavar="")
+    parser.add_argument('--crop_center', type=int, nargs=2, default=['(iw/2)','(ih/2)'], help="center of the rectangular area", metavar="")
+    parser.add_argument('--blackdetect_duration', type=float, default=0.15, help="min duration for a screen to be considered black", metavar="")
+    parser.add_argument('--blackdetect_pix_th', type=float, default=0.02, help="pixel threshold: max luminescence for a pixel to be considered black", metavar="")
+    parser.add_argument('--blackdetect_pic_th', type=float, default=1, help="picture threshold: percentage of the screen that has to be <= pix_th to be considered black", metavar="")
+    args = parser.parse_args()
+    
+    main_dir = args.path_with_videos # Path with videos
+    # Options
+    secs_before_cut = args.secs_before_cut
+    speed_change = args.speed_change
+    last_try_complete = args.last_try_complete
+    last_try_normal_speed = args.last_try_normal_speed
+    long_scroll_screen = args.long_scroll_screen
+    # Crop variables
+    w = args.crop_size[0]
+    h = args.crop_size[1]
+    x = args.crop_center[0]
+    y = args.crop_center[1]
+    # Blackdetect variables
+    duration = args.blackdetect_duration
+    pix_th = args.blackdetect_pix_th
+    pic_th = args.blackdetect_pic_th
+    # List of video paths in main_dir supported by ffmpeg
     ffmpeg_capture_out = [line.strip() for line in ffmpeg_captureOut("ffmpeg -demuxers", capture="stdout")]
     ffmpeg_capture_out = ffmpeg_capture_out[ffmpeg_capture_out.index("--") + 1:]
     ffmpeg_supprted_video_formats = []
     for line in ffmpeg_capture_out:
         for format in line.split()[1].split(","):
-            ffmpeg_supprted_video_formats.append(format)
-    # Build a list of videos_file_paths in videos_directory_path supported by ffmpeg
+            ffmpeg_supprted_video_formats.append(format) # List of ffmpeg supported input formats
     main_videos = only_supported_file_format_paths(main_dir, ffmpeg_supprted_video_formats)
 
-    """
-    TODO Expose these variables to be user defined
-    """
-    # Options
-    speed = 2 #1 is normal speed, can't be 0 and too high damage audio and video quality max 2 recomended
-    secs_before_transition = 5
-    long_scroll_screen = False # Indented for screens like last sections of Core-C or last section of Moon, organize sections from short do long
-    normal_speed_last_try = True # As you wish
-    complete_last_try = True # As you wish
-
-    # Crop variables
-    w = 300 #width of rectangle to detect blackscreen
-    h = 300 #height of rectangle to detect blackscreen
-    x = '(iw/2)' #x center of rectangle, defautl is center of video
-    y = '(ih/2)' #y center of rectangle, defautl is center of video
-
-    # Blackdetect variables
-    d = 0.15 #minimal duration to mark decection
-    pix_th = 0.02 #theshhold of luminescence to considerer pixel black
-    pic_th = 1 # % of screen that has to be below pix_th to consider blackscreen
-
-    # The program will run for each supported video file in main directory, if no file is supported does nothing
+    # The program will run for each supported video file in main directory, if no file is supported quits
     if main_videos == []:
         print("no supported video file formats in directory")
-        
+        sys.exit(1)
+
     for main_video in main_videos:
         
         # Variables
         main_video_format = main_video[main_video.rindex(".") + 1:]
         main_video_name = main_video[main_video.rindex(f"\\") + 1: main_video.rindex(".")]
-        temp_dir = f'{main_dir}\\TEMP_FILES_CELESTE_DEATHS_AUTOMAIC_VIDEO_EDITOR'
-        os.mkdir(temp_dir) #TODO it will become a class temp_dir = temp_directory(temp_dir) and that add and delete files from this folder will change
         ready_video = f'{main_dir}\\{main_video_name}_ready.{main_video_format}'
-
+        temp_dir = f'{main_dir}\\TEMP_FILES_CELESTE_DEATHS_AUTOMAIC_VIDEO_EDITOR'
+        os.mkdir(temp_dir)
         #____________________________________________________________________________________
         # Build a list of sections of the video to cut by identifying blackscreen transitions
         print("detecting blackscreen transitions, this can take a while")
 
-        
         # From ffmpeg stderrout only lines that contains "blackdetect"
-        ffmpeg_command = f'ffmpeg -i "{main_video}" -vf crop={w}:{h}:{x}-{w/2}:{y}-{h/2},blackdetect=d={d}:pix_th={pix_th}:pic_th={pic_th} -f null -'
+        ffmpeg_command = f'ffmpeg -i "{main_video}" -vf crop={w}:{h}:{x}-{w/2}:{y}-{h/2},blackdetect=d={duration}:pix_th={pix_th}:pic_th={pic_th} -f null -'
         ffmpeg_capture_out = [line for line in ffmpeg_captureOut(ffmpeg_command) if "blackdetect" in line]
 
-        # Massagens bkackdetect strings from lines and format values into dict
+        # Format bkackdetect lines into dict
         ffmpeg_blackdetect = []
         for blackdetect in ffmpeg_capture_out:
             start_end = {"black_start": 0, "black_end": 0}
@@ -73,24 +75,28 @@ def main():
                 start_end[se] = float(digits)
             ffmpeg_blackdetect.append(start_end)
         
-        # Build a list with all seconds to cut, which are in the middle of blacks transitions
+        # Build a list with all places to cut, which are in the middle of blacks transitions
         places_to_cut = [blackdetect["black_start"] + ((blackdetect["black_end"] - blackdetect["black_start"]) / 2) for blackdetect in ffmpeg_blackdetect]
-
-        # Build a list sections of video to be cutted, with start and end seconds
+        # Build a list with sections of video to be cutted, with start and end places for each section
         sections_to_cut = [{"section_start": places_to_cut[i], "section_end": places_to_cut[i + 1]} for i in range(len(places_to_cut) - 1)]
-        
-        if long_scroll_screen: # Short video sections means deaths at the beguining of long scroll level sections, list is sorted to short video sections first
+        # If long scroll screen list is sorted to short video sections first
+        if long_scroll_screen:
             sections_to_cut.sort(key=lambda x: x["section_end"] - x["section_start"])
         del places_to_cut
 
-        #___________________________
+        # If no transition was detected quit
+        if sections_to_cut == []:
+            print("no transitions detected, check your video or try ajusting crop and blackdetect")
+            sys.exit(1)
+
+        #_____________________________________________
         # Create video section files eith speed change
         print(f"video sections detected: {len(sections_to_cut)}")
 
         for i, section in enumerate(sections_to_cut):
             print(f'creating video section {i + 1}:')
 
-            start = section["section_end"] - secs_before_transition
+            start = section["section_end"] - secs_before_cut
             if start < 0:
                 start = 0
             elif start < section["section_start"]:
@@ -99,13 +105,13 @@ def main():
             
             # Last section options: complete try/normal speed
             if i == len(sections_to_cut) - 1:
-                if complete_last_try: # Starts from the beguining of section
+                if last_try_complete: # Starts from the beguining of section
                     start = section["section_start"]
-                if normal_speed_last_try: # Change ffmpeg command to don't speed up
-                    speed = 1
+                if last_try_normal_speed: # Change ffmpeg command to normal speed
+                    speed_change = 1
             
             # Create ffmpeg command and execute it
-            ffmpeg_command = f'ffmpeg -v 24 -stats  -ss {start} -to {end} -i "{main_video}" -vf "setpts={1/speed}*PTS" -filter:a "atempo={1*speed}" "{temp_dir}\\section{i:0>6}.{main_video_format}"'   
+            ffmpeg_command = f'ffmpeg -v 24 -stats  -ss {start} -to {end} -i "{main_video}" -vf "setpts={1/speed_change}*PTS" -filter:a "atempo={1*speed_change}" "{temp_dir}\\section{i:0>6}.{main_video_format}"'   
             ffmpeg_execute(ffmpeg_command)
         
         #___________________________
