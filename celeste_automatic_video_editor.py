@@ -5,9 +5,9 @@ def main():
     #Arguments parsing, help, usage
     parser = argparse.ArgumentParser(description="identifies the blackscreen transitiosn associated with deaths, beginnings and ends in the game. creates video sections with speed changes of the last moments berofe transitions and join then togheter. you can opt to have the last try/section in real time and/or complete.", epilog="if you're having trouble detecting transitions use --debug_crop_blackdetect and mess with the crop and blackdetect flags, otherwise these should be left alone. others parameters are video editing optionalsm feel free to experiment with then.")
     parser.add_argument('path_with_videos', type=str, help="path with videos to edit")
-    parser.add_argument('--last_try_complete', action='store_false', help="pass if you want the last try complete")
-    parser.add_argument('--last_try_normal_speed', action='store_false', help="pass if you want last try in normal speed")
-    parser.add_argument('--long_scroll_screen', action='store_false', help="for videos with one long scroll screen like last fro 8C or last from Moon. won't work if video has multiple level sections. it edits tries from short to long, which is from beginning to end of the section.")
+    parser.add_argument('--last_try_complete', action='store_true', help="pass if you want the last try complete")
+    parser.add_argument('--last_try_normal_speed', action='store_true', help="pass if you want last try in normal speed")
+    parser.add_argument('--long_scroll_screen', action='store_true', help="for videos with one long scroll screen like last fro 8C or last from Moon. won't work if video has multiple level sections. it edits tries from short to long, which is from beginning to end of the section.")
     parser.add_argument('--secs_before_cut', type=float, default=5, help="how much video to keep before each cut, this is before speed change", metavar="")
     parser.add_argument('--speed_change', type=float, default=2, help="by how much to change the speed, can't be 0 and to high will affect video/audio quality", metavar="")
     parser.add_argument('--crop_size', type=int, nargs=2, default=[300,300], help="rectangular area to cut in pixels", metavar="")
@@ -15,7 +15,7 @@ def main():
     parser.add_argument('--blackdetect_duration', type=float, default=0.1, help="min duration for a screen to be considered black", metavar="")
     parser.add_argument('--blackdetect_pix_th', type=float, default=0.03, help="pixel threshold: max luminescence for a pixel to be considered black", metavar="")
     parser.add_argument('--blackdetect_pic_th', type=float, default=1, help="picture threshold: percentage of the screen that has to be in pix_th to be considered black", metavar="")
-    parser.add_argument('--debug_crop_blackdetect', action='store_false', help="to help ajust crop and blackdetect. saves the cropped video blackdetect receives to detect transitions and saves a txt with all video sections detect")
+    parser.add_argument('--debug_crop_blackdetect', action='store_true', help="to help ajust crop and blackdetect. saves the cropped video blackdetect receives to detect transitions and saves a txt with all video sections detect")
     args = parser.parse_args()
     
     main_dir = args.path_with_videos # Path with videos
@@ -56,7 +56,7 @@ def main():
         main_video_format = main_video[main_video.rindex(".") + 1:]
         main_video_name = main_video[main_video.rindex(f"\\") + 1: main_video.rindex(".")]
         ready_video = f'{main_dir}\\{main_video_name}_edited.{main_video_format}'
-        temp_dir = f'{main_dir}\\celeste_automatic_video_editor_temp_can_be_delete_if_its_not_running'
+        temp_dir = f'{main_dir}\\celeste_automatic_video_editor_temp_can_be_deleted_if_its_not_running'
         os.mkdir(temp_dir)
         cropped_video = f'-f null -'
         if debug_crop_blackdetect: # Saves cropped video

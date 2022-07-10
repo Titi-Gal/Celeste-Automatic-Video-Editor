@@ -16,6 +16,8 @@ Usage Exemples:
     Only requiered argument is "path_with_videos", the others can be in any order and combination.
     Debug, Crop and Blackdetect arguments should be left alone unless you're having trouble detecting transitions.
 
+I didn't license it, but you can use however you like, i dont care, its just a simple python script
+
 Dependencies:
 
 ffmpeg on path, if you don't know to install it just search for install ffmpeg
