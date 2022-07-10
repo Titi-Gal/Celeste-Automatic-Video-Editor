@@ -14,7 +14,7 @@ Usage Exemples:
     python celeste_automatic_video_editor.py --help
 
     Only requiered argument is "path_with_videos", the others can be in any order and combination.
-    Debug, Crop and Blackdetect arguments should be left alone unless you're having trouble detecting transitions
+    Debug, Crop and Blackdetect arguments should be left alone unless you're having trouble detecting transitions.
 
 Dependencies:
 
